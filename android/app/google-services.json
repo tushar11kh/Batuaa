@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "922129047722",
+    "firebase_url": "https://batwara-32454-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "batwara-32454",
+    "storage_bucket": "batwara-32454.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922129047722:android:80c31efc037226f73f30d3",
+        "android_client_info": {
+          "package_name": "com.tejasbadone.budgeto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr2lGfeC5km0_VA1MSsqOYbL5JzzpZRro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
