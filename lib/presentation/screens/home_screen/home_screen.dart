@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:batuaa/presentation/widgets/custom_card.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import '../../../colors.dart';
-import '../../../logic/autodeduct_carplan.dart';
 import '../../../logic/autodeduct_emergencyfunds.dart';
 import '../../../logic/autodeduct_monthend.dart';
 import '../../widgets/button.dart';
@@ -40,35 +39,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     AutodeductMonthend deductBal = AutodeductMonthend();
     deductBal.autodeductMonthend();
-
-    AutoDeductCarFunds carEMI = AutoDeductCarFunds();
-    carEMI.autoDeductCarFunds();
-
-  }
-
-  // @override
-  // void dispose() {
-  //   isAutoPayOn = false;
-  //   super.dispose();
-  // }
-
-  dynamic accountNumber;
-  void getAccountNum() {
-    DatabaseReference accNumRef =
-        ref.child(user.uid.toString()).child('bankAccNumber');
-
-    accNumRef.once().then((snapshot) {
-      if (mounted) {
-        setState(() {
-          accountNumber = (snapshot.snapshot.value) as dynamic;
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    getAccountNum();
     return WillPopScope(
         onWillPop: () async {
           // isAutoPayOn = false;
@@ -118,9 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
 
-                  dynamic total = (
-                      map['expensesAvailableBalance'] +
-                      map['savings']) as dynamic;
+                  dynamic total = (map['amount']) as dynamic;
 
                   return WillPopScope(
                     onWillPop: () async {
@@ -182,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       height:
                                                           20), // Reduced spacing
                                                   Text(
-                                                    'Total Balance',
+                                                    'Monthly Balance',
                                                     style: TextStyle(
                                                       fontSize:
                                                           20, // Reduced font size
@@ -247,30 +219,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         const BorderRadius.all(
                                                       Radius.circular(25),
                                                     ),
-                                                    color: batuaaThemes
-                                                                .isDarkMode(
+                                                    color:
+                                                        batuaaThemes.isDarkMode(
                                                                     context) ==
-                                                            true
-                                                        ? kDarkGreenBackC
-                                                        : kGreenDarkC,
+                                                                true
+                                                            ? kDarkGreenBackC
+                                                            : kGreenDarkC,
                                                   ),
                                                   child: GestureDetector(
                                                     onTap: () {
-                                                      getAccountNum();
-                                                      accountNumber == ""
-                                                          ? ToastMessage()
-                                                              .toastMessage(
-                                                              'Please update your account!',
-                                                              Colors.red,
-                                                            )
-                                                          : Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        const AddFundsScreen(),
-                                                              ),
-                                                            );
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              const AddFundsScreen(),
+                                                        ),
+                                                      );
                                                     },
                                                     child: Padding(
                                                       padding: const EdgeInsets
@@ -351,12 +315,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
                                               cardTitle: 'Savings',
-                                              cardBalance:
-                                                  map['savings'].toStringAsFixed(0),
+                                              cardBalance: map['savings']
+                                                  .toStringAsFixed(0),
                                             ),
                                           ],
                                         ),
-                          
                                         SizedBox(
                                           height: constraints.maxHeight * 0.02,
                                         ),
