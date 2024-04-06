@@ -9,7 +9,7 @@ import '../../widgets/text_field.dart';
 import 'home_screen.dart';
 
 class AddFundsScreen extends StatefulWidget {
-  const AddFundsScreen({super.key});
+  const AddFundsScreen({Key? key}) : super(key: key);
 
   @override
   State<AddFundsScreen> createState() => _AddFundsScreenState();
@@ -17,14 +17,18 @@ class AddFundsScreen extends StatefulWidget {
 
 class _AddFundsScreenState extends State<AddFundsScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final user = FirebaseAuth.instance.currentUser!;
-
   DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
-
   DateTime now = DateTime.now();
-
   final amountController = TextEditingController();
+
+  String? selectedFundType;
+  List<String> fundTypes = [
+    'Salary',
+    'Business Profits',
+    'Rental Income',
+    'Other Income'
+  ];
 
   @override
   void dispose() {
@@ -41,49 +45,46 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
 
   void add() {
     if (_formKey.currentState!.validate()) {
-      double? totalAmount = double.tryParse(amountController.text);
       double? amount = double.tryParse(amountController.text);
 
       if (amount == null) {
-        return ToastMessage()
-            .toastMessage('Please enter the amount', Colors.red);
+        ToastMessage().toastMessage('Please enter a valid amount', Colors.red);
+        return;
       }
 
+      DatabaseReference splitRef = ref.child(user.uid).child('split');
 
-        DatabaseReference splitRef = ref.child(user.uid).child('split');
+      splitRef.update({
+        'amount': ServerValue.increment(amount),
+      }).then((value) async {
+        DatabaseReference expensesRef = ref.child(user.uid).child('split');
 
-        splitRef.update(
-          {
-            'amount': ServerValue.increment(amount),
-          },
-        ).then(
-          (value) async {
-            DatabaseReference expensesRef = ref.child(user.uid).child('split');
+        ToastMessage().toastMessage('Funds added!', Colors.green);
 
-            ToastMessage().toastMessage('Added!', Colors.green);
+        final payer = {
+          'name': selectedFundType, // Use the selected fund type
+          'amount': '+ ${amountController.text}',
+          'paymentDateTime': now.toIso8601String(),
+        };
 
-            final payer = {
-              'name': 'Funds added!',
-              'amount': '+ ${amountController.text}',
-              'paymentDateTime': now.toIso8601String(),
-            };
-            ref
-                .child(user.uid)
-                .child('split')
-                .child('allTransactions')
-                .push()
-                .set(payer);
-          },
-        ).onError(
-          (error, stackTrace) {
-            ToastMessage().toastMessage(error.toString(), Colors.red);
-          },
-        );
+        ref
+            .child(user.uid)
+            .child('split')
+            .child('allTransactions')
+            .push()
+            .set(payer);
+      }).onError((error, stackTrace) {
+        ToastMessage().toastMessage(error.toString(), Colors.red);
+      });
 
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      Navigator.pop(context);
     }
+  }
+
+  void selectFundType(String type) {
+    setState(() {
+      selectedFundType = type;
+    });
   }
 
   @override
@@ -111,16 +112,40 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
                                 },
                                 icon: const Icon(Icons.keyboard_backspace),
                               ),
-                              SizedBox(
-                                width: constraints.maxWidth * 0.03,
-                              ),
+                              SizedBox(width: constraints.maxWidth * 0.03),
                               const Text(
                                 'Add Funds',
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                    fontSize: 28, fontWeight: FontWeight.w400),
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ],
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          const Text(
+                            'Select Income ',
+                            style: TextStyle(fontSize: 18),
+                            textAlign: TextAlign.start,
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          Wrap(
+                            // Wrap widget for button layout
+                            spacing: 10.0, // spacing between buttons
+                            runSpacing: 5.0, // spacing between rows of buttons
+                            children: fundTypes
+                                .map((String type) => ElevatedButton(
+                                      onPressed: () => selectFundType(type),
+                                      child: Text(type),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: selectedFundType ==
+                                                type
+                                            ? Theme.of(context).primaryColor
+                                            : kGrayTextfieldC, // Change button color based on selection
+                                      ),
+                                    ))
+                                .toList(),
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           const Text(
@@ -130,26 +155,27 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           CustomTextField(
-                              hint: 'Amount',
-                              iconName: Icons.currency_rupee,
-                              controller: amountController,
-                              validator: checkValid,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ]),                   
+                            hint: 'Amount',
+                            iconName: Icons.currency_rupee,
+                            controller: amountController,
+                            validator: checkValid,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
+                          ),
                           SizedBox(height: constraints.maxHeight * 0.04),
                           TButton(
-                              constraints: constraints,
-                              btnColor: Theme.of(context).primaryColor,
-                              btnText: 'Add',
-                              onPressed: () async {
-                                add();
-                              }),
+                            constraints: constraints,
+                            btnColor: Theme.of(context).primaryColor,
+                            btnText: 'Add',
+                            onPressed: add,
+                          ),
                           SizedBox(
-                              height: orientation == Orientation.portrait
-                                  ? constraints.maxHeight * 0.02
-                                  : constraints.maxHeight * 0.08),
+                            height: orientation == Orientation.portrait
+                                ? constraints.maxHeight * 0.02
+                                : constraints.maxHeight * 0.08,
+                          ),
                         ],
                       ),
                     ),

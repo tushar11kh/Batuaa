@@ -11,27 +11,20 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 import '../../../logic/flutter_toast.dart';
 
-class UpdateAccountScreen extends StatefulWidget {
-  const UpdateAccountScreen({super.key});
+class profilepicScreen extends StatefulWidget {
+  const profilepicScreen({super.key});
 
   @override
-  State<UpdateAccountScreen> createState() => _UpdateAccountScreenState();
+  State<profilepicScreen> createState() => _profilepicScreenState();
 }
 
-class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
+class _profilepicScreenState extends State<profilepicScreen> {
   String imageUrl = " ";
 
   String? value;
 
   DropdownMenuItem<String> buildMenuItem(String item) =>
       DropdownMenuItem(value: item, child: Text(item));
-
-  String? checkValid(value) {
-    if (value.isEmpty) {
-      return 'Please enter correct value';
-    }
-    return null;
-  }
 
   DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
 
@@ -41,11 +34,6 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
 
   bool loading = false;
 
-  final fullNameController = TextEditingController();
-  final ageController = TextEditingController();
-  final genderController = TextEditingController(); // New controller for gender
-  String? selectedGender;
-  List<String> genders = ['Male', 'Female'];
 
 DatabaseReference splitRef = FirebaseDatabase.instance.ref().child('Users');
 
@@ -55,19 +43,8 @@ DatabaseReference splitRef = FirebaseDatabase.instance.ref().child('Users');
       loading = true;
     });
     await ref.child(user.uid).update({
-      'fullName': fullNameController.text.toString(),
-      'age': ageController.text.toString(),
-      'gender': selectedGender, // Use selectedGender or default to 'Prefer Not to Say'
     }).then((value) {
       Navigator.pop(context);
-      // PersistentNavBarNavigator.pushNewScreen(
-      //   context,
-      //   screen: const BottomNav(),
-      //   withNavBar: false, // OPTIONAL VALUE. True by default.
-      //   pageTransitionAnimation: PageTransitionAnimation.cupertino,
-      // );
-      // Navigator.of(context).pop();
-
       ToastMessage().toastMessage('Updated!', Colors.green);
       setState(() {
         loading = false;
@@ -181,54 +158,8 @@ DatabaseReference splitRef = FirebaseDatabase.instance.ref().child('Users');
                                     ],
                                   ),
                                 ),
-                                SBox(constraints),
-                                CustomTextField(
-                                  hint: 'Full name',
-                                  iconName: Icons.person,
-                                  controller: fullNameController,
-                                  validator: checkValid,
-                                ),
 
-                                SBox(constraints),
-                                CustomTextField(
-                                    hint: 'Age',
-                                    iconName: Icons.person,
-                                    controller: ageController,
-                                    validator: checkValid,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ]),
-                          SizedBox(height: constraints.maxHeight * 0.02),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.people, size: 24),
-                              SizedBox(width: 16),
-                              const Text(
-                                'Select Gender',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.02),
-                          Row(
-                            children: [
-                              for (String gender in genders)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: ChoiceChip(
-                                    label: Text(gender),
-                                    selected: selectedGender == gender,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        selectedGender = selected ? gender : null;
-                                      });
-                                    },
-                                  ),
-                                ),
-                            ],
-                          ),
+
                                 SizedBox(
                                   height: constraints.maxHeight * 0.05,
                                 ),
