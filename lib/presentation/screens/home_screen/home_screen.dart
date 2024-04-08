@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
 
-                  dynamic total = (map['amount']-map['expenses']) as dynamic;
+                  dynamic total = (map['amount'] - map['expenses']) as dynamic;
 
                   return WillPopScope(
                     onWillPop: () async {
@@ -368,9 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
                                               cardTitle: 'Expenses',
-                                              cardBalance:
-                                                  map['expenses']
-                                                      .toStringAsFixed(0),
+                                              cardBalance: map['expenses']
+                                                  .toStringAsFixed(0),
                                             ),
                                             CustomCard(
                                               orientation: orientation,
@@ -479,6 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                               'name'],
                                                                           width:
                                                                               constraints.maxWidth * 0.05);
+                                                                              
                                                                     })),
                                                           ),
                                                         ),
@@ -514,4 +514,5 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             })));
   }
+  
 }

@@ -93,7 +93,7 @@ DatabaseReference splitRef = FirebaseDatabase.instance.ref().child('Users');
                                       width: constraints.maxWidth * 0.03,
                                     ),
                                     const Text(
-                                      'Update Account',
+                                      'Update Profile Icon',
                                       textAlign: TextAlign.start,
                                       style: TextStyle(
                                           fontSize: 24,
