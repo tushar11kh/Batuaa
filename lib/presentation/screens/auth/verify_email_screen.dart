@@ -62,7 +62,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         'savings': 0,
         'totalBalance': 0,
         'needAvailableBalance': 0,
-        'expensesAvailableBalance': 0,
+        'ExpensesAvailableBalance': 0,
         'count': 1,
         'isEFenabled': false,
         'isCPenabled': false,

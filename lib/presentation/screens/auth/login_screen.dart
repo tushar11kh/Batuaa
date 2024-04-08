@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Row(
                                         children: [
                                           const Text(
-                                            'New to FiMantra?',
+                                            'New to Batuaa?',
                                             style: TextStyle(
                                                 color: kGrayTextC,
                                                 fontSize: 16,

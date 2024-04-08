@@ -1,6 +1,7 @@
 import 'package:batuaa/batuaa_themes.dart';
 import 'package:batuaa/logic/flutter_toast.dart';
 import 'package:batuaa/presentation/screens/home_screen/add_funds_screen.dart';
+import 'package:batuaa/presentation/screens/home_screen/add_expenses_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:batuaa/presentation/widgets/custom_card.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import '../../../colors.dart';
-import '../../../logic/autodeduct_carplan.dart';
 import '../../../logic/autodeduct_emergencyfunds.dart';
 import '../../../logic/autodeduct_monthend.dart';
 import '../../widgets/button.dart';
@@ -40,35 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     AutodeductMonthend deductBal = AutodeductMonthend();
     deductBal.autodeductMonthend();
-
-    AutoDeductCarFunds carEMI = AutoDeductCarFunds();
-    carEMI.autoDeductCarFunds();
-
-  }
-
-  // @override
-  // void dispose() {
-  //   isAutoPayOn = false;
-  //   super.dispose();
-  // }
-
-  dynamic accountNumber;
-  void getAccountNum() {
-    DatabaseReference accNumRef =
-        ref.child(user.uid.toString()).child('bankAccNumber');
-
-    accNumRef.once().then((snapshot) {
-      if (mounted) {
-        setState(() {
-          accountNumber = (snapshot.snapshot.value) as dynamic;
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    getAccountNum();
     return WillPopScope(
         onWillPop: () async {
           // isAutoPayOn = false;
@@ -118,9 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
 
-                  dynamic total = (
-                      map['expensesAvailableBalance'] +
-                      map['savings']) as dynamic;
+                  dynamic total = (map['amount'] - map['expenses']) as dynamic;
 
                   return WillPopScope(
                     onWillPop: () async {
@@ -163,135 +136,119 @@ class _HomeScreenState extends State<HomeScreen> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
                                           children: [
+                                            // Monthly Balance Container
                                             Container(
                                               height: MediaQuery.of(context)
                                                       .size
                                                       .height *
-                                                  0.15, // Increased height
+                                                  0.15,
                                               decoration: BoxDecoration(
                                                 color: Theme.of(context)
                                                     .primaryColor,
                                                 borderRadius:
-                                                    const BorderRadius.all(
-                                                  Radius.circular(20),
-                                                ),
+                                                    BorderRadius.circular(20),
                                               ),
                                               child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
                                                 children: [
-                                                  const SizedBox(
-                                                      height:
-                                                          20), // Reduced spacing
                                                   Text(
-                                                    'Total Balance',
+                                                    'Monthly Balance',
                                                     style: TextStyle(
-                                                      fontSize:
-                                                          20, // Reduced font size
+                                                      fontSize: 20,
                                                       color: Colors.white,
                                                       fontWeight:
                                                           FontWeight.w500,
                                                     ),
                                                   ),
-                                                  SizedBox(
-                                                    height:
-                                                        60, // Increased height
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.currency_rupee,
-                                                          size:
-                                                              36, // Reduced size
-                                                          color: Colors.white,
-                                                        ),
-                                                        Flexible(
-                                                          // Wrapped with Flexible
-                                                          child: Text(
-                                                            (total)
-                                                                .toStringAsFixed(
-                                                                    0),
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize:
-                                                                  30, // Increased font size
-                                                              color:
-                                                                  Colors.white,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
+                                                  SizedBox(height: 10),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.currency_rupee,
+                                                        size: 36,
+                                                        color: Colors.white,
+                                                      ),
+                                                      SizedBox(width: 5),
+                                                      Flexible(
+                                                        child: Text(
+                                                          total.toStringAsFixed(
+                                                              0),
+                                                          style: TextStyle(
+                                                            fontSize: 30,
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines:
+                                                              1, // Limit to one line to prevent overflow
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 15),
-                                              child: Center(
-                                                child: Container(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.1,
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.8,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                      Radius.circular(25),
+                                            SizedBox(
+                                                height:
+                                                    20), // Vertical spacing between sections
+                                            // Row for Add Funds and Add Expenses buttons
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                // Add Funds Button
+                                                Flexible(
+                                                  child: Container(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.1,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.4,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              25),
+                                                      color: batuaaThemes
+                                                              .isDarkMode(
+                                                                  context)
+                                                          ? kDarkGreenBackC
+                                                          : kGreenDarkC,
                                                     ),
-                                                    color: batuaaThemes
-                                                                .isDarkMode(
-                                                                    context) ==
-                                                            true
-                                                        ? kDarkGreenBackC
-                                                        : kGreenDarkC,
-                                                  ),
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      getAccountNum();
-                                                      accountNumber == ""
-                                                          ? ToastMessage()
-                                                              .toastMessage(
-                                                              'Please update your account!',
-                                                              Colors.red,
-                                                            )
-                                                          : Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        const AddFundsScreen(),
-                                                              ),
-                                                            );
-                                                    },
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 15),
+                                                    child: TextButton(
+                                                      onPressed: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                const AddFundsScreen(),
+                                                          ),
+                                                        );
+                                                      },
                                                       child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Icon(
                                                             Icons.add,
                                                             color: Colors.white,
                                                             size: 20,
                                                           ),
-                                                          const SizedBox(
-                                                              width:
-                                                                  5), // Reduced spacing
-                                                          Expanded(
+                                                          SizedBox(width: 5),
+                                                          Flexible(
                                                             child: Text(
                                                               'Add Funds',
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
                                                               style: TextStyle(
                                                                 fontSize: 15,
                                                                 fontWeight:
@@ -300,6 +257,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                 color: Colors
                                                                     .white,
                                                               ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxLines:
+                                                                  1, // Limit to one line to prevent overflow
                                                             ),
                                                           ),
                                                         ],
@@ -307,15 +269,85 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     ),
                                                   ),
                                                 ),
-                                              ),
+                                                SizedBox(
+                                                    width:
+                                                        20), // Horizontal spacing between buttons
+                                                // Add Expenses Button
+                                                Flexible(
+                                                  child: Container(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.1,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.4,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              25),
+                                                      color: batuaaThemes
+                                                              .isDarkMode(
+                                                                  context)
+                                                          ? kDarkGreenBackC
+                                                          : kGreenDarkC,
+                                                    ),
+                                                    child: TextButton(
+                                                      onPressed: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                const AddExpensesScreen(),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.add,
+                                                            color: Colors.white,
+                                                            size: 20,
+                                                          ),
+                                                          SizedBox(width: 5),
+                                                          Flexible(
+                                                            child: Text(
+                                                              'Add Expenses',
+                                                              style: TextStyle(
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxLines:
+                                                                  1, // Limit to one line to prevent overflow
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
                                         SizedBox(
                                           height: constraints.maxHeight * 0.02,
                                         ),
-                                        const Text(
-                                          'Category Balance',
+                                        Text(
+                                          '${DateFormat.MMMM().format(DateTime.now())} ${DateTime.now().year}',
                                           style: TextStyle(fontSize: 20),
                                         ),
                                         SizedBox(
@@ -336,9 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
                                               cardTitle: 'Expenses',
-                                              cardBalance:
-                                                  map['expensesAvailableBalance']
-                                                      .toStringAsFixed(0),
+                                              cardBalance: map['expenses']
+                                                  .toStringAsFixed(0),
                                             ),
                                             CustomCard(
                                               orientation: orientation,
@@ -351,12 +382,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
                                               cardTitle: 'Savings',
-                                              cardBalance:
-                                                  map['savings'].toStringAsFixed(0),
+                                              cardBalance: map['savings']
+                                                  .toStringAsFixed(0),
                                             ),
                                           ],
                                         ),
-                          
                                         SizedBox(
                                           height: constraints.maxHeight * 0.02,
                                         ),
@@ -448,6 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                               'name'],
                                                                           width:
                                                                               constraints.maxWidth * 0.05);
+                                                                              
                                                                     })),
                                                           ),
                                                         ),
@@ -483,4 +514,5 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             })));
   }
+  
 }

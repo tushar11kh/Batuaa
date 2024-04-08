@@ -2,6 +2,7 @@ import 'package:batuaa/batuaa_themes.dart';
 import 'package:batuaa/colors.dart';
 import 'package:batuaa/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:batuaa/presentation/screens/user_profile/update_account_screen.dart';
+import 'package:batuaa/presentation/screens/user_profile/update_profile_pic.dart';
 import 'package:batuaa/presentation/widgets/profile_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -83,7 +84,7 @@ class _UserProfileScreeenState extends State<UserProfileScreeen> {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
                                                   builder: ((context) =>
-                                                      const UpdateAccountScreen())));
+                                                      const profilepicScreen())));
                                         },
                                         icon: const Icon(Icons.edit))
                                   ],
@@ -140,6 +141,11 @@ class _UserProfileScreeenState extends State<UserProfileScreeen> {
                                     title: 'Age',
                                     iconName: Icons.person,
                                     titleValue: map['age']),
+                                ProfileTab(
+                                    constraints: constraints,
+                                    title: 'Gender',
+                                    iconName: Icons.person,
+                                    titleValue: map['gender']),
                                 SizedBox(
                                   height: constraints.maxHeight * 0.01,
                                 ),
@@ -158,7 +164,7 @@ class _UserProfileScreeenState extends State<UserProfileScreeen> {
                                 ),
                                 TButton(
                                   constraints: constraints,
-                                  btnColor: Theme.of(context).primaryColor,
+                                  btnColor: Color.fromARGB(255, 95, 11, 5),
                                   btnText: 'Sign out',
                                   onPressed: () {
                                     FirebaseAuth.instance.signOut();

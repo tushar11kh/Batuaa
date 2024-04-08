@@ -8,36 +8,43 @@ import '../../../logic/flutter_toast.dart';
 import '../../widgets/text_field.dart';
 import 'home_screen.dart';
 
-class AddFundsScreen extends StatefulWidget {
-  const AddFundsScreen({Key? key}) : super(key: key);
+class AddExpensesScreen extends StatefulWidget {
+  const AddExpensesScreen({Key? key}) : super(key: key);
 
   @override
-  State<AddFundsScreen> createState() => _AddFundsScreenState();
+  State<AddExpensesScreen> createState() => _AddExpensesScreenState();
 }
 
-class _AddFundsScreenState extends State<AddFundsScreen> {
+class _AddExpensesScreenState extends State<AddExpensesScreen> {
+    DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
   final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser!;
-  DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
-  DateTime now = DateTime.now();
-  final amountController = TextEditingController();
 
-  String? selectedFundType;
-  List<String> fundTypes = [
-    'Salary',
-    'Business Profits',
-    'Rental Income',
-    'Other Income'
+  DateTime now = DateTime.now();
+  final expenseNameController = TextEditingController();
+  final expensesController = TextEditingController();
+
+  String? selectedCategory;
+  List<String> expenseCategories = [
+    'Food & Drinks',
+    'Shopping',
+    'Housing',
+    'Transportation',
+    'Vehicle',
+    'Life & Entertainment',
+    'Electronics',
+    'Other Expenses'
   ];
 
   @override
   void dispose() {
     super.dispose();
-    amountController.dispose();
+    expenseNameController.dispose();
+    expensesController.dispose();
   }
 
-  String? checkValid(value) {
-    if (value.isEmpty || value == null) {
+  String? checkValid(String? value) {
+    if (value == null || value.isEmpty) {
       return 'This field is required';
     }
     return null;
@@ -45,25 +52,25 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
 
   void add() {
     if (_formKey.currentState!.validate()) {
-      double? amount = double.tryParse(amountController.text);
+      double? expenses = double.tryParse(expensesController.text);
 
-      if (amount == null) {
-        ToastMessage().toastMessage('Please enter a valid amount', Colors.red);
-        return;
+      if (expenses == null) {
+        return ToastMessage()
+            .toastMessage('Please enter a valid amount', Colors.red);
       }
 
       DatabaseReference splitRef = ref.child(user.uid).child('split');
 
       splitRef.update({
-        'amount': ServerValue.increment(amount),
-      }).then((value) async {
+        'expenses': ServerValue.increment(expenses),
+      }).then((value) {
         DatabaseReference expensesRef = ref.child(user.uid).child('split');
-
-        ToastMessage().toastMessage('Funds added!', Colors.green);
+        ToastMessage().toastMessage('Expense added!', Colors.green);
 
         final payer = {
-          'name': selectedFundType, // Use the selected fund type
-          'amount': '+ ${amountController.text}',
+          'name': expenseNameController.text.trim(),
+          'amount': '- ${expensesController.text}',
+          'category': selectedCategory ?? 'Other Expenses',
           'paymentDateTime': now.toIso8601String(),
         };
 
@@ -73,18 +80,28 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
             .child('allTransactions')
             .push()
             .set(payer);
+        Navigator.pop(context); // Go back to previous screen
       }).onError((error, stackTrace) {
         ToastMessage().toastMessage(error.toString(), Colors.red);
       });
-
-      Navigator.pop(context);
     }
   }
 
-  void selectFundType(String type) {
-    setState(() {
-      selectedFundType = type;
-    });
+  Widget buildCategoryButton(String category) {
+    bool isSelected = category == selectedCategory;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          selectedCategory = isSelected ? null : category;
+        });
+      },
+      style: ButtonStyle(
+        backgroundColor: isSelected
+            ? MaterialStateProperty.all(Theme.of(context).primaryColor)
+            : MaterialStateProperty.all(kGrayTextfieldC),
+      ),
+      child: Text(category),
+    );
   }
 
   @override
@@ -112,59 +129,58 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
                                 },
                                 icon: const Icon(Icons.keyboard_backspace),
                               ),
-                              SizedBox(width: constraints.maxWidth * 0.03),
+                              SizedBox(
+                                width: constraints.maxWidth * 0.03,
+                              ),
                               const Text(
-                                'Add Funds',
+                                'Add Expense',
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                                    fontSize: 28, fontWeight: FontWeight.w400),
                               ),
                             ],
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           const Text(
-                            'Select Income ',
+                            'Expense Name',
                             style: TextStyle(fontSize: 18),
-                            textAlign: TextAlign.start,
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.02),
-                          Wrap(
-                            // Wrap widget for button layout
-                            spacing: 10.0, // spacing between buttons
-                            runSpacing: 5.0, // spacing between rows of buttons
-                            children: fundTypes
-                                .map((String type) => ElevatedButton(
-                                      onPressed: () => selectFundType(type),
-                                      child: Text(type),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: selectedFundType ==
-                                                type
-                                            ? Theme.of(context).primaryColor
-                                            : kGrayTextfieldC, // Change button color based on selection
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.02),
-                          const Text(
-                            'Enter amount',
-                            style: TextStyle(fontSize: 18),
-                            textAlign: TextAlign.start,
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           CustomTextField(
-                            hint: 'Amount',
-                            iconName: Icons.currency_rupee,
-                            controller: amountController,
+                            iconName: Icons.add_shopping_cart_outlined,
+                            hint: 'Enter Expense Name',
+                            controller: expenseNameController,
                             validator: checkValid,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
                           ),
-                          SizedBox(height: constraints.maxHeight * 0.04),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          const Text(
+                            'Enter Amount',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              hintText: 'expenses',
+                              prefixIcon: Icon(Icons.currency_rupee),
+                            ),
+                            controller: expensesController,
+                            keyboardType: TextInputType.number,
+                            validator: checkValid,
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          const Text(
+                            'Select Category',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: expenseCategories.map((category) {
+                              return buildCategoryButton(category);
+                            }).toList(),
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.02),
                           TButton(
                             constraints: constraints,
                             btnColor: Theme.of(context).primaryColor,
