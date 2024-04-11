@@ -7,6 +7,7 @@ import '../../../colors.dart';
 import '../../../logic/flutter_toast.dart';
 import '../../widgets/text_field.dart';
 import 'home_screen.dart';
+import 'package:intl/intl.dart';
 
 class AddFundsScreen extends StatefulWidget {
   const AddFundsScreen({Key? key}) : super(key: key);
@@ -43,6 +44,22 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
     return null;
   }
 
+
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2000),
+      // Set the lastDate to the current date to prevent future dates
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != now) {
+      setState(() {
+        now = picked;
+      });
+    }
+  }
+  
   void add() {
   if (_formKey.currentState!.validate()) {
     // Check if an income type is selected
@@ -117,6 +134,20 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 16.0),
+                          Row(
+                            children: [
+                              Text(
+                                'Select Date: ${DateFormat('E, d MMMM').format(now)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(width: 13.0),
+                              ElevatedButton(
+                                onPressed: () => _selectDate(context),
+                                child: Text('Change'),
+                              ),
+                            ],
+                          ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           Row(
                             children: [

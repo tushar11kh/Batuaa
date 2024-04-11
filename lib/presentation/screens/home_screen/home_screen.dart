@@ -435,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       final DateFormat
                                                           formatter =
                                                           DateFormat(
-                                                              'E, d MMMM,   hh:mm a');
+                                                              'E, d MMMM');
                                                       final dynamic formatted =
                                                           formatter
                                                               .format(newDate);

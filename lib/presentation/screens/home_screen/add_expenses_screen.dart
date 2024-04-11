@@ -7,6 +7,7 @@ import '../../../colors.dart';
 import '../../../logic/flutter_toast.dart';
 import '../../widgets/text_field.dart';
 import 'home_screen.dart';
+import 'package:intl/intl.dart';
 
 class AddExpensesScreen extends StatefulWidget {
   const AddExpensesScreen({Key? key}) : super(key: key);
@@ -50,63 +51,84 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
     return null;
   }
 
-  void add() {
-  if (_formKey.currentState!.validate()) {
-    // Parse the entered expenses amount
-    double? expenses = double.tryParse(expensesController.text);
-
-    DatabaseReference amountRef = ref.child(user.uid).child('split/amount');
-    DatabaseReference expensesRef = ref.child(user.uid).child('split/expenses');
-
-    // Fetch amount and expenses from Firebase
-    Future<List<double>> futureValues = Future.wait([
-      amountRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
-      expensesRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
-    ]);
-
-    futureValues.then((values) {
-      double availableBalance = values[0] - values[1];
-
-      if (expenses != null && expenses <= availableBalance) {
-        // Proceed to add expense
-        DatabaseReference splitRef = ref.child(user.uid).child('split');
-
-        splitRef.update({
-          'expenses': ServerValue.increment(expenses),
-        }).then((_) {
-          DatabaseReference expensesRef = ref.child(user.uid).child('split');
-          ToastMessage().toastMessage('Expense added!', Colors.green);
-
-          final payer = {
-            'name': expenseNameController.text.trim(),
-            'amount': '- ${expensesController.text}',
-            'category': selectedCategory ?? 'Other Expenses',
-            'paymentDateTime': DateTime.now().toIso8601String(),
-          };
-
-          ref
-              .child(user.uid)
-              .child('split')
-              .child('allTransactions')
-              .push()
-              .set(payer);
-
-          Navigator.pop(context); // Go back to previous screen
-        }).catchError((error) {
-          ToastMessage().toastMessage('Failed to add expense: $error', Colors.red);
-        });
-      } else {
-        // Show error message if expense exceeds available balance
-        ToastMessage().toastMessage(
-            'Insufficient Balance! Expense cannot exceed ₹$availableBalance', Colors.red);
-      }
-    }).catchError((error) {
-      // Show error if fetching data from Firebase fails
-      ToastMessage().toastMessage('Failed to fetch data: $error', Colors.red);
-    });
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2000),
+      // Set the lastDate to the current date to prevent future dates
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != now) {
+      setState(() {
+        now = picked;
+      });
+    }
   }
-}
 
+  void add() {
+    if (_formKey.currentState!.validate()) {
+      // Parse the entered expenses amount
+      double? expenses = double.tryParse(expensesController.text);
+
+      DatabaseReference amountRef = ref.child(user.uid).child('split/amount');
+      DatabaseReference expensesRef =
+          ref.child(user.uid).child('split/expenses');
+
+      // Fetch amount and expenses from Firebase
+      Future<List<double>> futureValues = Future.wait([
+        amountRef
+            .get()
+            .then((snapshot) => double.parse(snapshot.value.toString())),
+        expensesRef
+            .get()
+            .then((snapshot) => double.parse(snapshot.value.toString())),
+      ]);
+
+      futureValues.then((values) {
+        double availableBalance = values[0] - values[1];
+
+        if (expenses != null && expenses <= availableBalance) {
+          // Proceed to add expense
+          DatabaseReference splitRef = ref.child(user.uid).child('split');
+
+          splitRef.update({
+            'expenses': ServerValue.increment(expenses),
+          }).then((_) {
+            DatabaseReference expensesRef = ref.child(user.uid).child('split');
+            ToastMessage().toastMessage('Expense added!', Colors.green);
+
+            final payer = {
+              'name': expenseNameController.text.trim(),
+              'amount': '- ${expensesController.text}',
+              'category': selectedCategory ?? 'Other Expenses',
+              'paymentDateTime': now.toIso8601String(),
+            };
+
+            ref
+                .child(user.uid)
+                .child('split')
+                .child('allTransactions')
+                .push()
+                .set(payer);
+
+            Navigator.pop(context); // Go back to previous screen
+          }).catchError((error) {
+            ToastMessage()
+                .toastMessage('Failed to add expense: $error', Colors.red);
+          });
+        } else {
+          // Show error message if expense exceeds available balance
+          ToastMessage().toastMessage(
+              'Insufficient Balance! Your monthly balance left: ₹$availableBalance',
+              Colors.red);
+        }
+      }).catchError((error) {
+        // Show error if fetching data from Firebase fails
+        ToastMessage().toastMessage('Failed to fetch data: $error', Colors.red);
+      });
+    }
+  }
 
   Widget buildCategoryButton(String category) {
     bool isSelected = category == selectedCategory;
@@ -141,6 +163,20 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 16.0),
+                          Row(
+                            children: [
+                              Text(
+                                'Select Date: ${DateFormat('E, d MMMM').format(now)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(width: 13.0),
+                              ElevatedButton(
+                                onPressed: () => _selectDate(context),
+                                child: Text('Change'),
+                              ),
+                            ],
+                          ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           Row(
                             children: [
