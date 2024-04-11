@@ -16,7 +16,7 @@ class AddExpensesScreen extends StatefulWidget {
 }
 
 class _AddExpensesScreenState extends State<AddExpensesScreen> {
-    DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
+  DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
   final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser!;
 
@@ -55,51 +55,54 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
     // Parse the entered expenses amount
     double? expenses = double.tryParse(expensesController.text);
 
-    if (expenses == null) {
-      // Display error if entered amount is not valid
-      ToastMessage().toastMessage('Please enter a valid amount', Colors.red);
-      return;
-    }
+    DatabaseReference amountRef = ref.child(user.uid).child('split/amount');
+    DatabaseReference expensesRef = ref.child(user.uid).child('split/expenses');
 
-    // Check if the entered expenses exceed the maximum allowed value
-    if (expenses > 9999999) {
-      ToastMessage().toastMessage(
-          'Amount not more than ₹9999999', Colors.red);
-      return;
-    }
+    // Fetch amount and expenses from Firebase
+    Future<List<double>> futureValues = Future.wait([
+      amountRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
+      expensesRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
+    ]);
 
-    // Check if expense category is selected
-    if (selectedCategory == null) {
-      ToastMessage().toastMessage('Please select an expense category', Colors.red);
-      return;
-    }
+    futureValues.then((values) {
+      double availableBalance = values[0] - values[1];
 
-    // All validations passed, proceed to add the expense
-    DatabaseReference splitRef = ref.child(user.uid).child('split');
+      if (expenses != null && expenses <= availableBalance) {
+        // Proceed to add expense
+        DatabaseReference splitRef = ref.child(user.uid).child('split');
 
-    splitRef.update({
-      'expenses': ServerValue.increment(expenses),
-    }).then((value) {
-      DatabaseReference expensesRef = ref.child(user.uid).child('split');
-      ToastMessage().toastMessage('Expense added!', Colors.green);
+        splitRef.update({
+          'expenses': ServerValue.increment(expenses),
+        }).then((_) {
+          DatabaseReference expensesRef = ref.child(user.uid).child('split');
+          ToastMessage().toastMessage('Expense added!', Colors.green);
 
-      final payer = {
-        'name': expenseNameController.text.trim(),
-        'amount': '- ${expensesController.text}',
-        'category': selectedCategory ?? 'Other Expenses',
-        'paymentDateTime': now.toIso8601String(),
-      };
+          final payer = {
+            'name': expenseNameController.text.trim(),
+            'amount': '- ${expensesController.text}',
+            'category': selectedCategory ?? 'Other Expenses',
+            'paymentDateTime': DateTime.now().toIso8601String(),
+          };
 
-      ref
-          .child(user.uid)
-          .child('split')
-          .child('allTransactions')
-          .push()
-          .set(payer);
-      
-      Navigator.pop(context); // Go back to previous screen
-    }).onError((error, stackTrace) {
-      ToastMessage().toastMessage(error.toString(), Colors.red);
+          ref
+              .child(user.uid)
+              .child('split')
+              .child('allTransactions')
+              .push()
+              .set(payer);
+
+          Navigator.pop(context); // Go back to previous screen
+        }).catchError((error) {
+          ToastMessage().toastMessage('Failed to add expense: $error', Colors.red);
+        });
+      } else {
+        // Show error message if expense exceeds available balance
+        ToastMessage().toastMessage(
+            'Insufficient Balance! Expense cannot exceed ₹$availableBalance', Colors.red);
+      }
+    }).catchError((error) {
+      // Show error if fetching data from Firebase fails
+      ToastMessage().toastMessage('Failed to fetch data: $error', Colors.red);
     });
   }
 }
