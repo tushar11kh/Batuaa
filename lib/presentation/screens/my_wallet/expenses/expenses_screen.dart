@@ -9,9 +9,13 @@ import '../../../../logic/open_camera.dart';
 import '../../../widgets/balance_card.dart';
 import '../../../widgets/card_alt.dart';
 import '../../../widgets/custom_card.dart';
+import '../../../widgets/saving_card.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:google_gemini/google_gemini.dart';
 import '../../../widgets/null_error_message_widget.dart';
 import '../../../widgets/transaction_card.dart';
 import 'add_expenses_payer.dart';
+import '../../auth/gemini_key.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -21,8 +25,39 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
+  String textChat = "sugestion come here"; //stores messages
   final DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
   final user = FirebaseAuth.instance.currentUser!;
+  final gemini = GoogleGemini(apiKey: GeminiApiKey.apiKey);
+  void queryText({required String query}) {
+
+
+    setState(() {
+      // loading = true;
+      textChat = query;
+      // _textController.clear();
+    });
+    gemini.generateFromText(query).then((value) {
+      //sets state of loader->false ie loader wont be displayed any more
+      //adds respone value to textChat list based on role(gemini)
+      setState(() {
+        // loading = false;
+        textChat = value.text;
+      });
+      // scrollToEnd();
+    })
+        .onError((error, stackTrace) {
+      //loader->false; it will stop showing up on screen
+      //error will added to chat from Gemini's side
+      // loading = false;
+      textChat = error.toString();
+      // scrollToEnd();
+    }
+    );
+  }
+  // void scrollToEnd() {
+  //   _scroll.jumpTo(_scroll.position.maxScrollExtent);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -56,16 +91,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     BalanceCard(
-                                      amount: map['expensesAvailableBalance']
+                                      amount: map['expenses']
                                           .toStringAsFixed(0),
                                       constraints:
                                           orientation == Orientation.portrait
-                                              ? constraints.maxHeight * 0.25
+                                              ? constraints.maxHeight * 0.2
                                               : constraints.maxHeight * 0.8,
                                     ),
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
+
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -104,50 +140,69 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
+                                    const Text(
+                                      'Get Suggestations on your',
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    SizedBox(
+                                      height: constraints.maxHeight * 0.03,
+                                    ),
                                     Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
                                         GestureDetector(
                                           onTap: () {
-                                            provider.pickImage(context);
+                                            queryText(query: "give me suggestion about expenses control");
                                           },
-                                          child: CardAlt(
+                                          child: SavingsCard(
                                             orientation: orientation,
                                             constraints: constraints,
-                                            iconName: Icons.qr_code_scanner,
-                                            title: 'QR pay',
+                                            iconName: Icons.trending_down,
+                                            title: 'Expences',
                                             verHeight:
-                                                constraints.maxHeight * 0.15,
+                                            constraints.maxHeight * 0.15,
                                             horiHeight:
-                                                constraints.maxHeight * 0.5,
-                                            verWidth:
-                                                constraints.maxHeight * 0.23,
-                                            horiWidth:
-                                                constraints.maxWidth * 0.4,
+                                            constraints.maxHeight * 0.5,
+                                            verWidth: constraints.maxHeight * 0.25,
+                                            horiWidth: constraints.maxWidth * 0.4,
                                           ),
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const AddExpensesPayer()));
+                                            queryText(query: "give me suggestion about investment");
                                           },
-                                          child: CardAlt(
-                                            orientation: orientation,
-                                            constraints: constraints,
-                                            iconName: Icons.account_box,
-                                            title: 'Account pay',
-                                            verHeight:
+                                          child: Stack(
+                                            children: [
+                                              SavingsCard(
+                                                orientation: orientation,
+                                                constraints: constraints,
+                                                iconName: Icons.trending_up,
+                                                title: 'Investment',
+                                                verHeight:
                                                 constraints.maxHeight * 0.15,
-                                            horiHeight:
+                                                horiHeight:
                                                 constraints.maxHeight * 0.5,
-                                            verWidth:
-                                                constraints.maxHeight * 0.23,
-                                            horiWidth:
+                                                verWidth:
+                                                constraints.maxHeight * 0.25,
+                                                horiWidth:
                                                 constraints.maxWidth * 0.4,
+                                              ),
+                                              Positioned(
+                                                  left: orientation ==
+                                                      Orientation.portrait
+                                                      ? 42
+                                                      : 125,
+                                                  top: orientation ==
+                                                      Orientation.portrait
+                                                      ? 20
+                                                      : 12,
+                                                  child: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white,
+                                                    size: 22,
+                                                  ))
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -156,103 +211,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                       height: constraints.maxHeight * 0.03,
                                     ),
                                     const Text(
-                                      'Expenses Transactions',
+                                      'Suggestations',
                                       style: TextStyle(fontSize: 20),
                                     ),
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
-                                    map['expensesTransactions'] == null
-                                        ? const Center(
-                                            child: Text(
-                                                'No transactions available'),
-                                          )
-                                        : StreamBuilder(
-                                            stream: ref
-                                                .child(user.uid)
-                                                .child('split')
-                                                .child('expensesTransactions')
-                                                .onValue,
-                                            builder: (context,
-                                                AsyncSnapshot<DatabaseEvent>
-                                                    snapshot) {
-                                              if (!snapshot.hasData) {
-                                                return const Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                  color: kGreenColor,
-                                                ));
-                                              } else {
-                                                Map<dynamic, dynamic> map =
-                                                    snapshot.data!.snapshot
-                                                        .value as dynamic;
-                                                List<dynamic> list = [];
-                                                list.clear();
-                                                list = map.values.toList();
-                                                list.sort((a, b) => b[
-                                                        'paymentDateTime']
-                                                    .compareTo(
-                                                        a['paymentDateTime']));
-
-                                                dynamic formatDate(
-                                                    String date) {
-                                                  final dynamic newDate =
-                                                      DateTime.parse(date);
-                                                  final DateFormat formatter =
-                                                      DateFormat(
-                                                          'E, d MMMM,   hh:mm a');
-                                                  final dynamic formatted =
-                                                      formatter.format(newDate);
-                                                  return formatted;
-                                                }
-
-                                                return Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: SizedBox(
-                                                        height: orientation ==
-                                                                Orientation
-                                                                    .portrait
-                                                            ? constraints
-                                                                    .maxHeight *
-                                                                0.4
-                                                            : constraints
-                                                                    .maxHeight *
-                                                                0.7,
-                                                        child: ListView.builder(
-                                                            itemCount: snapshot
-                                                                .data!
-                                                                .snapshot
-                                                                .children
-                                                                .length,
-                                                            itemBuilder:
-                                                                ((context,
-                                                                    index) {
-                                                              return TransactionCard(
-                                                                  constraints:
-                                                                      constraints,
-                                                                  dateAndTime:
-                                                                      formatDate(
-                                                                          list[index]
-                                                                              [
-                                                                              'paymentDateTime']),
-                                                                  transactionAmount:
-                                                                      '- ${list[index]['amount'].toStringAsFixed(0)}',
-                                                                  transactionName:
-                                                                      list[index]
-                                                                          [
-                                                                          'name'],
-                                                                  width: constraints
-                                                                          .maxWidth *
-                                                                      0.05);
-                                                            })),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                );
-                                              }
-                                            },
-                                          ),
+                                    Text(textChat),
                                     SizedBox(
                                       height: constraints.maxHeight * 0.04,
                                     ),

@@ -16,7 +16,7 @@ class AddExpensesScreen extends StatefulWidget {
 }
 
 class _AddExpensesScreenState extends State<AddExpensesScreen> {
-    DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
+  DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
   final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser!;
 
@@ -51,41 +51,62 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
   }
 
   void add() {
-    if (_formKey.currentState!.validate()) {
-      double? expenses = double.tryParse(expensesController.text);
+  if (_formKey.currentState!.validate()) {
+    // Parse the entered expenses amount
+    double? expenses = double.tryParse(expensesController.text);
 
-      if (expenses == null) {
-        return ToastMessage()
-            .toastMessage('Please enter a valid amount', Colors.red);
+    DatabaseReference amountRef = ref.child(user.uid).child('split/amount');
+    DatabaseReference expensesRef = ref.child(user.uid).child('split/expenses');
+
+    // Fetch amount and expenses from Firebase
+    Future<List<double>> futureValues = Future.wait([
+      amountRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
+      expensesRef.get().then((snapshot) => double.parse(snapshot.value.toString())),
+    ]);
+
+    futureValues.then((values) {
+      double availableBalance = values[0] - values[1];
+
+      if (expenses != null && expenses <= availableBalance) {
+        // Proceed to add expense
+        DatabaseReference splitRef = ref.child(user.uid).child('split');
+
+        splitRef.update({
+          'expenses': ServerValue.increment(expenses),
+        }).then((_) {
+          DatabaseReference expensesRef = ref.child(user.uid).child('split');
+          ToastMessage().toastMessage('Expense added!', Colors.green);
+
+          final payer = {
+            'name': expenseNameController.text.trim(),
+            'amount': '- ${expensesController.text}',
+            'category': selectedCategory ?? 'Other Expenses',
+            'paymentDateTime': DateTime.now().toIso8601String(),
+          };
+
+          ref
+              .child(user.uid)
+              .child('split')
+              .child('allTransactions')
+              .push()
+              .set(payer);
+
+          Navigator.pop(context); // Go back to previous screen
+        }).catchError((error) {
+          ToastMessage().toastMessage('Failed to add expense: $error', Colors.red);
+        });
+      } else {
+        // Show error message if expense exceeds available balance
+        ToastMessage().toastMessage(
+            'Insufficient Balance! Expense cannot exceed ₹$availableBalance', Colors.red);
       }
-
-      DatabaseReference splitRef = ref.child(user.uid).child('split');
-
-      splitRef.update({
-        'expenses': ServerValue.increment(expenses),
-      }).then((value) {
-        DatabaseReference expensesRef = ref.child(user.uid).child('split');
-        ToastMessage().toastMessage('Expense added!', Colors.green);
-
-        final payer = {
-          'name': expenseNameController.text.trim(),
-          'amount': '- ${expensesController.text}',
-          'category': selectedCategory ?? 'Other Expenses',
-          'paymentDateTime': now.toIso8601String(),
-        };
-
-        ref
-            .child(user.uid)
-            .child('split')
-            .child('allTransactions')
-            .push()
-            .set(payer);
-        Navigator.pop(context); // Go back to previous screen
-      }).onError((error, stackTrace) {
-        ToastMessage().toastMessage(error.toString(), Colors.red);
-      });
-    }
+    }).catchError((error) {
+      // Show error if fetching data from Firebase fails
+      ToastMessage().toastMessage('Failed to fetch data: $error', Colors.red);
+    });
   }
+}
+
 
   Widget buildCategoryButton(String category) {
     bool isSelected = category == selectedCategory;
