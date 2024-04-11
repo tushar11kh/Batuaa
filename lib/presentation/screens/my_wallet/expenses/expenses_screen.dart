@@ -10,10 +10,12 @@ import '../../../widgets/balance_card.dart';
 import '../../../widgets/card_alt.dart';
 import '../../../widgets/custom_card.dart';
 import '../../../widgets/saving_card.dart';
-
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:google_gemini/google_gemini.dart';
 import '../../../widgets/null_error_message_widget.dart';
 import '../../../widgets/transaction_card.dart';
 import 'add_expenses_payer.dart';
+import '../../auth/gemini_key.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -23,11 +25,40 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
+  String textChat = "sugestion come here"; //stores messages
   final DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
   final user = FirebaseAuth.instance.currentUser!;
-  String Suggestion(){
-    return "hello";
+  final gemini = GoogleGemini(apiKey: GeminiApiKey.apiKey);
+  void queryText({required String query}) {
+
+
+    setState(() {
+      // loading = true;
+      textChat = query;
+      // _textController.clear();
+    });
+    gemini.generateFromText(query).then((value) {
+      //sets state of loader->false ie loader wont be displayed any more
+      //adds respone value to textChat list based on role(gemini)
+      setState(() {
+        // loading = false;
+        textChat = value.text;
+      });
+      // scrollToEnd();
+    })
+        .onError((error, stackTrace) {
+      //loader->false; it will stop showing up on screen
+      //error will added to chat from Gemini's side
+      // loading = false;
+      textChat = error.toString();
+      // scrollToEnd();
+    }
+    );
   }
+  // void scrollToEnd() {
+  //   _scroll.jumpTo(_scroll.position.maxScrollExtent);
+  // }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Object>(
@@ -109,54 +140,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
-                                    // Row(
-                                    //   mainAxisAlignment:
-                                    //       MainAxisAlignment.spaceBetween,
-                                    //   children: [
-                                    //     GestureDetector(
-                                    //       onTap: () {
-                                    //         provider.pickImage(context);
-                                    //       },
-                                    //       child: CardAlt(
-                                    //         orientation: orientation,
-                                    //         constraints: constraints,
-                                    //         iconName: Icons.qr_code_scanner,
-                                    //         title: 'QR pay',
-                                    //         verHeight:
-                                    //             constraints.maxHeight * 0.15,
-                                    //         horiHeight:
-                                    //             constraints.maxHeight * 0.5,
-                                    //         verWidth:
-                                    //             constraints.maxHeight * 0.23,
-                                    //         horiWidth:
-                                    //             constraints.maxWidth * 0.4,
-                                    //       ),
-                                    //     ),
-                                    //     GestureDetector(
-                                    //       onTap: () {
-                                    //         Navigator.push(
-                                    //             context,
-                                    //             MaterialPageRoute(
-                                    //                 builder: (context) =>
-                                    //                     const AddExpensesPayer()));
-                                    //       },
-                                    //       child: CardAlt(
-                                    //         orientation: orientation,
-                                    //         constraints: constraints,
-                                    //         iconName: Icons.account_box,
-                                    //         title: 'Account pay',
-                                    //         verHeight:
-                                    //             constraints.maxHeight * 0.15,
-                                    //         horiHeight:
-                                    //             constraints.maxHeight * 0.5,
-                                    //         verWidth:
-                                    //             constraints.maxHeight * 0.23,
-                                    //         horiWidth:
-                                    //             constraints.maxWidth * 0.4,
-                                    //       ),
-                                    //     ),
-                                    //   ],
-                                    // ),
                                     const Text(
                                       'Get Suggestations on your',
                                       style: TextStyle(fontSize: 20),
@@ -170,8 +153,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                       children: [
                                         GestureDetector(
                                           onTap: () {
-                              print("hello");
-                            },
+                                            queryText(query: "give me suggestion about expenses control");
+                                          },
                                           child: SavingsCard(
                                             orientation: orientation,
                                             constraints: constraints,
@@ -187,7 +170,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            print("hello");
+                                            queryText(query: "give me suggestion about investment");
                                           },
                                           child: Stack(
                                             children: [
@@ -234,7 +217,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
-                                    Text("hello"),
+                                    Text(textChat),
                                     SizedBox(
                                       height: constraints.maxHeight * 0.04,
                                     ),
