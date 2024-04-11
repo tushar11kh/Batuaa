@@ -367,8 +367,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   constraints.maxHeight * 0.23,
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
-                                              cardTitle: 'Expenses',
-                                              cardBalance: map['expenses']
+                                              cardTitle: 'Income',
+                                              cardBalance: map['amount']
                                                   .toStringAsFixed(0),
                                             ),
                                             CustomCard(
@@ -381,8 +381,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   constraints.maxHeight * 0.23,
                                               horiWidth:
                                                   constraints.maxWidth * 0.45,
-                                              cardTitle: 'Savings',
-                                              cardBalance: map['savings']
+                                              cardTitle: 'Expenses',
+                                              cardBalance: map['expenses']
                                                   .toStringAsFixed(0),
                                             ),
                                           ],
