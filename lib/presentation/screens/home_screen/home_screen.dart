@@ -491,6 +491,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       key: Key(
                                                           transactionId), // Use transaction ID as the unique key
                                                       onDismissed: (direction) {
+                                                        if (transactionData[
+                                                                'type'] ==
+                                                            'Income') {
+                                                          ref
+                                                              .child(user.uid)
+                                                              .child('split')
+                                                              .update({
+                                                            'amount': map[
+                                                                    'amount'] -
+                                                                transactionData[
+                                                                    'value'],
+                                                          });
+                                                        }
+                                                        else {
+                                                          ref
+                                                              .child(user.uid)
+                                                              .child('split')
+                                                              .update({
+                                                            'expenses': map[
+                                                                    'expenses'] -
+                                                                transactionData[
+                                                                    'value'],
+                                                          });
+                                                        }  // Recalculate updated total amount
+
                                                         // You can use the transactionId to delete the transaction from Firebase
                                                         print(transactionId);
                                                         print(transactionData[
