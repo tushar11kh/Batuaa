@@ -7,6 +7,7 @@ import '../../../colors.dart';
 import '../../../logic/flutter_toast.dart';
 import '../../widgets/text_field.dart';
 import 'home_screen.dart';
+import 'package:intl/intl.dart';
 
 class AddFundsScreen extends StatefulWidget {
   const AddFundsScreen({Key? key}) : super(key: key);
@@ -43,57 +44,72 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
     return null;
   }
 
-  void add() {
-  if (_formKey.currentState!.validate()) {
-    // Check if an income type is selected
-    if (selectedFundType == null) {
-      ToastMessage().toastMessage('Please select an income type', Colors.red);
-      return;
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2000),
+      // Set the lastDate to the current date to prevent future dates
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != now) {
+      setState(() {
+        now = picked;
+      });
     }
-
-    double? amount = double.tryParse(amountController.text);
-
-    if (amount == null) {
-      ToastMessage().toastMessage('Please enter a valid amount', Colors.red);
-      return;
-    }
-
-    // Check if the entered amount exceeds the maximum allowed value
-    if (amount > 9999999) {
-      ToastMessage().toastMessage(
-          'Amount not more than ₹9999999', Colors.red);
-      return;
-    }
-
-    DatabaseReference splitRef = ref.child(user.uid).child('split');
-
-    splitRef.update({
-      'amount': ServerValue.increment(amount),
-    }).then((value) async {
-      DatabaseReference expensesRef = ref.child(user.uid).child('split');
-
-      ToastMessage().toastMessage('Funds added!', Colors.green);
-
-      final payer = {
-        'name': selectedFundType, // Use the selected fund type
-        'amount': '+ ${amountController.text}',
-        'paymentDateTime': now.toIso8601String(),
-      };
-
-      ref
-          .child(user.uid)
-          .child('split')
-          .child('allTransactions')
-          .push()
-          .set(payer);
-    }).onError((error, stackTrace) {
-      ToastMessage().toastMessage(error.toString(), Colors.red);
-    });
-
-    Navigator.pop(context);
   }
-}
 
+  void add() {
+    if (_formKey.currentState!.validate()) {
+      // Check if an income type is selected
+      if (selectedFundType == null) {
+        ToastMessage().toastMessage('Please select an income type', Colors.red);
+        return;
+      }
+
+      double? amount = double.tryParse(amountController.text);
+
+      if (amount == null) {
+        ToastMessage().toastMessage('Please enter a valid amount', Colors.red);
+        return;
+      }
+
+      // Check if the entered amount exceeds the maximum allowed value
+      if (amount > 9999999) {
+        ToastMessage()
+            .toastMessage('Amount not more than ₹9999999', Colors.red);
+        return;
+      }
+
+      DatabaseReference splitRef = ref.child(user.uid).child('split');
+
+      splitRef.update({
+        'amount': ServerValue.increment(amount),
+      }).then((value) async {
+        DatabaseReference expensesRef = ref.child(user.uid).child('split');
+
+        ToastMessage().toastMessage('Funds added!', Colors.green);
+
+        final payer = {
+          'name': selectedFundType, // Use the selected fund type
+          'amount': '+ ${amountController.text}',
+          'paymentDateTime': now.toIso8601String(),
+          'value': double.parse(amountController.text),
+          'type': "Income",
+        };
+        ref
+            .child(user.uid)
+            .child('split')
+            .child('allTransactions')
+            .push()
+            .set(payer);
+      }).onError((error, stackTrace) {
+        ToastMessage().toastMessage(error.toString(), Colors.red);
+      });
+
+      Navigator.pop(context);
+    }
+  }
 
   void selectFundType(String type) {
     setState(() {
@@ -117,6 +133,20 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 16.0),
+                          Row(
+                            children: [
+                              Text(
+                                'Select Date: ${DateFormat('E, d MMMM').format(now)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(width: 13.0),
+                              ElevatedButton(
+                                onPressed: () => _selectDate(context),
+                                child: Text('Change'),
+                              ),
+                            ],
+                          ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           Row(
                             children: [

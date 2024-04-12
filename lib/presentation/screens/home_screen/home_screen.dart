@@ -397,96 +397,180 @@ class _HomeScreenState extends State<HomeScreen> {
                                         SizedBox(
                                           height: constraints.maxHeight * 0.015,
                                         ),
-                                        map['allTransactions'] == null
-                                            ? const Center(
+                                        StreamBuilder(
+                                          stream: ref
+                                              .child(user.uid)
+                                              .child('split')
+                                              .child('allTransactions')
+                                              .onValue,
+                                          builder: (context,
+                                              AsyncSnapshot<DatabaseEvent>
+                                                  snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: kGreenColor,
+                                                ),
+                                              );
+                                            } else if (snapshot.hasError) {
+                                              return Center(
                                                 child: Text(
-                                                    'No transactions available'))
-                                            : StreamBuilder(
-                                                stream: ref
-                                                    .child(user.uid)
-                                                    .child('split')
-                                                    .child('allTransactions')
-                                                    .onValue,
-                                                builder: (context,
-                                                    AsyncSnapshot<DatabaseEvent>
-                                                        snapshot) {
-                                                  if (!snapshot.hasData) {
-                                                    return const Center(
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                      color: kGreenColor,
-                                                    ));
-                                                  } else {
-                                                    Map<dynamic, dynamic> map =
-                                                        snapshot.data!.snapshot
-                                                            .value as dynamic;
-                                                    List<dynamic> list = [];
-                                                    list.clear();
-                                                    list = map.values.toList();
-                                                    list.sort((a, b) => b[
-                                                            'paymentDateTime']
-                                                        .compareTo(a[
-                                                            'paymentDateTime']));
+                                                    'Error loading transactions'),
+                                              );
+                                            } else if (snapshot.data == null ||
+                                                snapshot.data!.snapshot.value ==
+                                                    null) {
+                                              return Center(
+                                                child: Text(
+                                                    'No transactions available'),
+                                              );
+                                            } else {
+                                              Map<dynamic, dynamic>? transmap =
+                                                  snapshot.data!.snapshot.value
+                                                      as Map<dynamic, dynamic>?;
 
-                                                    dynamic formatDate(
-                                                        String date) {
-                                                      final dynamic newDate =
-                                                          DateTime.parse(date);
-                                                      final DateFormat
-                                                          formatter =
-                                                          DateFormat(
-                                                              'E, d MMMM,   hh:mm a');
-                                                      final dynamic formatted =
-                                                          formatter
-                                                              .format(newDate);
-                                                      return formatted;
-                                                    }
+                                              if (transmap == null ||
+                                                  transmap.isEmpty) {
+                                                return Center(
+                                                  child: Text(
+                                                      'No transactions available'),
+                                                );
+                                              }
 
-                                                    return Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: SizedBox(
-                                                            height: orientation ==
-                                                                    Orientation
-                                                                        .portrait
-                                                                ? constraints
-                                                                        .maxHeight *
-                                                                    0.4
-                                                                : constraints
-                                                                        .maxHeight *
-                                                                    0.6,
-                                                            child: ListView
-                                                                .builder(
-                                                                    itemCount: snapshot
-                                                                        .data!
-                                                                        .snapshot
-                                                                        .children
-                                                                        .length,
-                                                                    itemBuilder:
-                                                                        ((context,
-                                                                            index) {
-                                                                      return TransactionCard(
-                                                                          constraints:
-                                                                              constraints,
-                                                                          dateAndTime: formatDate(list[index]
-                                                                              [
-                                                                              'paymentDateTime']),
-                                                                          transactionAmount: list[index]['amount']
-                                                                              .toString(),
-                                                                          transactionName: list[index]
-                                                                              [
-                                                                              'name'],
-                                                                          width:
-                                                                              constraints.maxWidth * 0.05);
-                                                                              
-                                                                    })),
-                                                          ),
-                                                        ),
-                                                      ],
+                                              // Extract keys (transaction IDs)
+                                              List<String> transactionKeys =
+                                                  transmap.keys
+                                                      .cast<String>()
+                                                      .toList();
+
+                                              // Sort transactions based on 'paymentDateTime'
+                                              List<dynamic> sortedTransactions =
+                                                  transmap.values.toList();
+                                              sortedTransactions.sort((a, b) =>
+                                                  b['paymentDateTime']
+                                                      .compareTo(a[
+                                                          'paymentDateTime']));
+
+                                              dynamic formatDate(String date) {
+                                                final newDate =
+                                                    DateTime.parse(date);
+                                                final formatter =
+                                                    DateFormat('E, d MMMM');
+                                                return formatter
+                                                    .format(newDate);
+                                              }
+
+                                              return SizedBox(
+                                                height: orientation ==
+                                                        Orientation.portrait
+                                                    ? constraints.maxHeight *
+                                                        0.4
+                                                    : constraints.maxHeight *
+                                                        0.6,
+                                                child: ListView.builder(
+                                                  itemCount:
+                                                      sortedTransactions.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    // Get transaction ID
+                                                    dynamic transactionData =
+                                                        sortedTransactions[
+                                                            index];
+                                                    // Find the transaction ID (key) corresponding to the current transaction data
+                                                    String transactionId =
+                                                        transactionKeys
+                                                            .firstWhere(
+                                                      (key) =>
+                                                          transmap[key] ==
+                                                          transactionData,
                                                     );
-                                                  }
-                                                },
-                                              ),
+
+                                                    return Dismissible(
+                                                      key: Key(
+                                                          transactionId), // Use transaction ID as the unique key
+                                                      onDismissed: (direction) {
+                                                        if (transactionData[
+                                                                'type'] ==
+                                                            'Income') {
+                                                          ref
+                                                              .child(user.uid)
+                                                              .child('split')
+                                                              .update({
+                                                            'amount': map[
+                                                                    'amount'] -
+                                                                transactionData[
+                                                                    'value'],
+                                                          });
+                                                        }
+                                                        else {
+                                                          ref
+                                                              .child(user.uid)
+                                                              .child('split')
+                                                              .update({
+                                                            'expenses': map[
+                                                                    'expenses'] -
+                                                                transactionData[
+                                                                    'value'],
+                                                          });
+                                                        }  // Recalculate updated total amount
+
+                                                        // You can use the transactionId to delete the transaction from Firebase
+                                                        print(transactionId);
+                                                        print(transactionData[
+                                                            'type']);
+                                                        print(transactionData[
+                                                            'value']);
+                                                        print(map['amount']);
+                                                        print(map['expenses']);
+                                                        print(total);
+
+                                                        ref
+                                                            .child(user.uid)
+                                                            .child('split')
+                                                            .child(
+                                                                'allTransactions')
+                                                            .child(
+                                                                transactionId)
+                                                            .remove();
+                                                      },
+                                                      background: Container(
+                                                        color: Colors.red,
+                                                        child: Icon(
+                                                            Icons.delete,
+                                                            color:
+                                                                Colors.white),
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                right: 20.0),
+                                                      ),
+                                                      child: TransactionCard(
+                                                        constraints:
+                                                            constraints,
+                                                        dateAndTime: formatDate(
+                                                            transactionData[
+                                                                'paymentDateTime']),
+                                                        transactionAmount:
+                                                            transactionData[
+                                                                    'amount']
+                                                                .toString(),
+                                                        transactionName:
+                                                            transactionData[
+                                                                'name'],
+                                                        width: constraints
+                                                                .maxWidth *
+                                                            0.05,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
                                         SizedBox(
                                           height: orientation ==
                                                   Orientation.portrait
@@ -514,5 +598,4 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             })));
   }
-  
 }
