@@ -103,6 +103,8 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               'amount': '- ${expensesController.text}',
               'category': selectedCategory ?? 'Other Expenses',
               'paymentDateTime': now.toIso8601String(),
+              'value': double.parse(expensesController.text),
+              'type': "Expense",
             };
 
             ref
