@@ -427,61 +427,123 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     'No transactions available'),
                                               );
                                             } else {
-  Map<dynamic, dynamic>? transmap = snapshot.data!.snapshot.value as Map<dynamic, dynamic>?;
+                                              Map<dynamic, dynamic>? transmap =
+                                                  snapshot.data!.snapshot.value
+                                                      as Map<dynamic, dynamic>?;
 
-  if (transmap == null || transmap.isEmpty) {
-    return Center(
-      child: Text('No transactions available'),
-    );
-  }
+                                              if (transmap == null ||
+                                                  transmap.isEmpty) {
+                                                return Center(
+                                                  child: Text(
+                                                      'No transactions available'),
+                                                );
+                                              }
 
-  // Extract keys (transaction IDs)
-  List<dynamic> transactionKeys = transmap.keys.toList();
+                                              // Extract keys (transaction IDs)
+                                              List<String> transactionKeys =
+                                                  transmap.keys
+                                                      .cast<String>()
+                                                      .toList();
 
-  // Sort transactions based on 'paymentDateTime'
-  List<dynamic> sortedTransactions = transmap.values.toList();
-  sortedTransactions.sort((a, b) => b['paymentDateTime'].compareTo(a['paymentDateTime']));
+                                              // Sort transactions based on 'paymentDateTime'
+                                              List<dynamic> sortedTransactions =
+                                                  transmap.values.toList();
+                                              sortedTransactions.sort((a, b) =>
+                                                  b['paymentDateTime']
+                                                      .compareTo(a[
+                                                          'paymentDateTime']));
 
-  dynamic formatDate(String date) {
-    final newDate = DateTime.parse(date);
-    final formatter = DateFormat('E, d MMMM');
-    return formatter.format(newDate);
-  }
+                                              dynamic formatDate(String date) {
+                                                final newDate =
+                                                    DateTime.parse(date);
+                                                final formatter =
+                                                    DateFormat('E, d MMMM');
+                                                return formatter
+                                                    .format(newDate);
+                                              }
 
-  return SizedBox(
-    height: orientation == Orientation.portrait ? constraints.maxHeight * 0.4 : constraints.maxHeight * 0.6,
-    child: ListView.builder(
-      itemCount: sortedTransactions.length,
-      itemBuilder: (context, index) {
-        String transactionId = transactionKeys[index]; // Get transaction ID
-        dynamic transactionData = sortedTransactions[index];
+                                              return SizedBox(
+                                                height: orientation ==
+                                                        Orientation.portrait
+                                                    ? constraints.maxHeight *
+                                                        0.4
+                                                    : constraints.maxHeight *
+                                                        0.6,
+                                                child: ListView.builder(
+                                                  itemCount:
+                                                      sortedTransactions.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    // Get transaction ID
+                                                    dynamic transactionData =
+                                                        sortedTransactions[
+                                                            index];
+                                                    // Find the transaction ID (key) corresponding to the current transaction data
+                                                    String transactionId =
+                                                        transactionKeys
+                                                            .firstWhere(
+                                                      (key) =>
+                                                          transmap[key] ==
+                                                          transactionData,
+                                                    );
 
-        return Dismissible(
-          key: Key(transactionId), // Use transaction ID as the unique key
-          onDismissed: (direction) {
-            // Implement deletion logic here
-            // You can use the transactionId to delete the transaction from Firebase
-            ref.child(user.uid).child('split').child('allTransactions').child(transactionId).remove();
-          },
-          background: Container(
-            color: Colors.red,
-            child: Icon(Icons.delete, color: Colors.white),
-            alignment: Alignment.centerRight,
-            padding: EdgeInsets.only(right: 20.0),
-          ),
-          child: TransactionCard(
-            constraints: constraints,
-            dateAndTime: formatDate(transactionData['paymentDateTime']),
-            transactionAmount: transactionData['amount'].toString(),
-            transactionName: transactionData['name'],
-            width: constraints.maxWidth * 0.05,
-          ),
-        );
-      },
-    ),
-  );
-}
+                                                    return Dismissible(
+                                                      key: Key(
+                                                          transactionId), // Use transaction ID as the unique key
+                                                      onDismissed: (direction) {
+                                                        // You can use the transactionId to delete the transaction from Firebase
+                                                        print(transactionId);
+                                                        print(transactionData[
+                                                            'type']);
+                                                        print(transactionData[
+                                                            'value']);
+                                                        print(map['amount']);
+                                                        print(map['expenses']);
+                                                        print(total);
 
+                                                        ref
+                                                            .child(user.uid)
+                                                            .child('split')
+                                                            .child(
+                                                                'allTransactions')
+                                                            .child(
+                                                                transactionId)
+                                                            .remove();
+                                                      },
+                                                      background: Container(
+                                                        color: Colors.red,
+                                                        child: Icon(
+                                                            Icons.delete,
+                                                            color:
+                                                                Colors.white),
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                right: 20.0),
+                                                      ),
+                                                      child: TransactionCard(
+                                                        constraints:
+                                                            constraints,
+                                                        dateAndTime: formatDate(
+                                                            transactionData[
+                                                                'paymentDateTime']),
+                                                        transactionAmount:
+                                                            transactionData[
+                                                                    'amount']
+                                                                .toString(),
+                                                        transactionName:
+                                                            transactionData[
+                                                                'name'],
+                                                        width: constraints
+                                                                .maxWidth *
+                                                            0.05,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            }
                                           },
                                         ),
                                         SizedBox(
