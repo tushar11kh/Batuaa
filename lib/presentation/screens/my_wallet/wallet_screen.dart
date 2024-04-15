@@ -1,5 +1,5 @@
 import 'package:batuaa/presentation/screens/my_wallet/expenses/expenses_screen.dart';
-import 'package:batuaa/presentation/screens/my_wallet/need/need_screen.dart';
+
 import 'package:batuaa/presentation/screens/my_wallet/savings/savings_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,7 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen>
     with TickerProviderStateMixin {
-  late TabController _tabController = TabController(length: 3, vsync: this);
+  late TabController _tabController = TabController(length: 2, vsync: this);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,10 +32,12 @@ class _WalletScreenState extends State<WalletScreen>
                         height: constraints.maxHeight * 0.03,
                       ),
                       const Text(
-                        'My Wallet',
+                        'Fund Management',
                         textAlign: TextAlign.start,
                         style: TextStyle(
-                            fontSize: 28, fontWeight: FontWeight.w400),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w400,
+                            color: kGreenColor),
                       ),
                       SizedBox(
                         height: constraints.maxHeight * 0.005,
@@ -48,9 +50,8 @@ class _WalletScreenState extends State<WalletScreen>
                           unselectedLabelColor: kGrayTextC,
                           indicatorColor: kGreenColor,
                           tabs: const [
-                            Tab(text: 'Need'),
-                            Tab(text: 'Expenses'),
                             Tab(text: 'Savings'),
+                            Tab(text: 'Expenses'),
                           ],
                         ),
                       ),
@@ -60,9 +61,8 @@ class _WalletScreenState extends State<WalletScreen>
                         child: TabBarView(
                           controller: _tabController,
                           children: const [
-                            NeedScreen(),
-                            ExpensesScreen(),
                             SavingsScreen(),
+                            ExpensesScreen(),
                           ],
                         ),
                       ),
