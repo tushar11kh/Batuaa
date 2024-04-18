@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../logic/open_camera.dart';
-import '../../../widgets/balance_card.dart';
+import '../../../widgets/savings_balance_card.dart';
 import '../../../widgets/card_alt.dart';
 import '../../../widgets/custom_card.dart';
 import '../../../widgets/saving_card.dart';
@@ -30,8 +30,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   final user = FirebaseAuth.instance.currentUser!;
   final gemini = GoogleGemini(apiKey: GeminiApiKey.apiKey);
   void queryText({required String query}) {
-
-
     setState(() {
       // loading = true;
       textChat = query;
@@ -45,15 +43,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         textChat = value.text;
       });
       // scrollToEnd();
-    })
-        .onError((error, stackTrace) {
+    }).onError((error, stackTrace) {
       //loader->false; it will stop showing up on screen
       //error will added to chat from Gemini's side
       // loading = false;
       textChat = error.toString();
       // scrollToEnd();
-    }
-    );
+    });
   }
   // void scrollToEnd() {
   //   _scroll.jumpTo(_scroll.position.maxScrollExtent);
@@ -91,8 +87,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     BalanceCard(
-                                      amount: map['expenses']
-                                          .toStringAsFixed(0),
+                                      amount:
+                                          map['expenses'].toStringAsFixed(0),
                                       constraints:
                                           orientation == Orientation.portrait
                                               ? constraints.maxHeight * 0.2
@@ -101,7 +97,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     SizedBox(
                                       height: constraints.maxHeight * 0.03,
                                     ),
-
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -149,11 +144,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     ),
                                     Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         GestureDetector(
                                           onTap: () {
-                                            queryText(query: "give me suggestion about expenses control");
+                                            queryText(
+                                                query:
+                                                    "give me suggestion about expenses control");
                                           },
                                           child: SavingsCard(
                                             orientation: orientation,
@@ -161,16 +158,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                             iconName: Icons.trending_down,
                                             title: 'Expences',
                                             verHeight:
-                                            constraints.maxHeight * 0.15,
+                                                constraints.maxHeight * 0.15,
                                             horiHeight:
-                                            constraints.maxHeight * 0.5,
-                                            verWidth: constraints.maxHeight * 0.25,
-                                            horiWidth: constraints.maxWidth * 0.4,
+                                                constraints.maxHeight * 0.5,
+                                            verWidth:
+                                                constraints.maxHeight * 0.25,
+                                            horiWidth:
+                                                constraints.maxWidth * 0.4,
                                           ),
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            queryText(query: "give me suggestion about investment");
+                                            queryText(
+                                                query:
+                                                    "give me suggestion about investment");
                                           },
                                           child: Stack(
                                             children: [
@@ -180,21 +181,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                                 iconName: Icons.trending_up,
                                                 title: 'Investment',
                                                 verHeight:
-                                                constraints.maxHeight * 0.15,
+                                                    constraints.maxHeight *
+                                                        0.15,
                                                 horiHeight:
-                                                constraints.maxHeight * 0.5,
+                                                    constraints.maxHeight * 0.5,
                                                 verWidth:
-                                                constraints.maxHeight * 0.25,
+                                                    constraints.maxHeight *
+                                                        0.25,
                                                 horiWidth:
-                                                constraints.maxWidth * 0.4,
+                                                    constraints.maxWidth * 0.4,
                                               ),
                                               Positioned(
                                                   left: orientation ==
-                                                      Orientation.portrait
+                                                          Orientation.portrait
                                                       ? 42
                                                       : 125,
                                                   top: orientation ==
-                                                      Orientation.portrait
+                                                          Orientation.portrait
                                                       ? 20
                                                       : 12,
                                                   child: const Icon(

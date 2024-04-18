@@ -4,7 +4,7 @@ import 'package:batuaa/presentation/screens/my_wallet/savings/manual_investment_
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import '../../../widgets/balance_card.dart';
+import '../../../widgets/savings_balance_card.dart';
 import '../../../widgets/null_error_message_widget.dart';
 import '../../../widgets/transaction_card.dart';
 import 'package:intl/intl.dart';
@@ -59,87 +59,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                     height: constraints.maxHeight * 0.03,
                                   ),
                                   const Text(
-                                    'Invest',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: constraints.maxHeight * 0.03,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const ManualInvestmentScreen()));
-                                        },
-                                        child: SavingsCard(
-                                          orientation: orientation,
-                                          constraints: constraints,
-                                          iconName: Icons.trending_up,
-                                          title: 'Manual\ninvestment',
-                                          verHeight:
-                                              constraints.maxHeight * 0.2,
-                                          horiHeight:
-                                              constraints.maxHeight * 0.5,
-                                          verWidth: constraints.maxHeight * 0.2,
-                                          horiWidth: constraints.maxWidth * 0.4,
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const AutoInvestmentScreen()));
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            SavingsCard(
-                                              orientation: orientation,
-                                              constraints: constraints,
-                                              iconName: Icons.trending_up,
-                                              title: 'Automatic\n investment',
-                                              verHeight:
-                                                  constraints.maxHeight * 0.2,
-                                              horiHeight:
-                                                  constraints.maxHeight * 0.5,
-                                              verWidth:
-                                                  constraints.maxHeight * 0.2,
-                                              horiWidth:
-                                                  constraints.maxWidth * 0.4,
-                                            ),
-                                            Positioned(
-                                                left: orientation ==
-                                                        Orientation.portrait
-                                                    ? 42
-                                                    : 125,
-                                                top: orientation ==
-                                                        Orientation.portrait
-                                                    ? 20
-                                                    : 12,
-                                                child: const Icon(
-                                                  Icons.update,
-                                                  color: Colors.white,
-                                                  size: 22,
-                                                ))
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: constraints.maxHeight * 0.03,
-                                  ),
-                                  const Text(
-                                    'Recent Invesments',
+                                    'Recent Savings',
                                     style: TextStyle(
                                       fontSize: 20,
                                     ),
@@ -149,7 +69,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                   ),
                                   map['savingInvestments'] == null
                                       ? const Center(
-                                          child: Text('No investments'),
+                                          child: Text('No savings yet'),
                                         )
                                       : StreamBuilder(
                                           stream: ref
@@ -259,4 +179,3 @@ class _SavingsScreenState extends State<SavingsScreen> {
         });
   }
 }
-
