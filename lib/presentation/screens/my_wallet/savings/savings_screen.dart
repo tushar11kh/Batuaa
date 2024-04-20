@@ -1,6 +1,7 @@
 import 'package:batuaa/colors.dart';
 import 'package:batuaa/presentation/screens/my_wallet/savings/automatic_investment_screen.dart';
 import 'package:batuaa/presentation/screens/my_wallet/savings/manual_investment_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ import '../../../widgets/null_error_message_widget.dart';
 import '../../../widgets/transaction_card.dart';
 import 'package:intl/intl.dart';
 import '../../../widgets/saving_card.dart';
+import 'package:batuaa/batuaa_themes.dart';
+import '../../../../logic/flutter_toast.dart';
 
 class SavingsScreen extends StatefulWidget {
   const SavingsScreen({super.key});
@@ -18,8 +21,85 @@ class SavingsScreen extends StatefulWidget {
 }
 
 class _SavingsScreenState extends State<SavingsScreen> {
-  final DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
+  DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
+  final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser!;
+  String? selectedFundType;
+  final amountController = TextEditingController();
+
+  DateTime now = DateTime.now();
+  final expenseNameController = TextEditingController();
+  final expensesController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    expenseNameController.dispose();
+    expensesController.dispose();
+  }
+
+  String? checkValid(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'This field is required';
+    }
+    return null;
+  }
+
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2000),
+      // Set the lastDate to the current date to prevent future dates
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != now) {
+      setState(() {
+        now = picked;
+      });
+    }
+  }
+
+  void add() {
+    dynamic amount = 310.0;
+
+    DatabaseReference ref = FirebaseDatabase.instance.ref().child('Users');
+
+    // 1. Store the previous amount in a variable
+    final double previousAmount = amount!; // Use the parsed amount directly
+
+    DatabaseReference splitRef = ref.child(user.uid).child('split');
+
+    splitRef.update({
+      'amount': ServerValue.increment(previousAmount),
+    }).then((value) async {
+      // ... existing success logic ...
+
+      ToastMessage().toastMessage('Funds added!', Colors.green);
+
+      // 2. Clear the amount field
+      amountController.text = '';
+
+      final payer = {
+        'name': selectedFundType,
+        // 3. Set display amount to 0
+        'amount': '+ 0.00', // Assuming you want two decimal places
+        'paymentDateTime': now.toIso8601String(),
+        'value': previousAmount, // Store the actual amount
+        'type': "Income",
+      };
+      ref
+          .child(user.uid)
+          .child('split')
+          .child('allTransactions')
+          .push()
+          .set(payer);
+    }).onError((error, stackTrace) {
+      ToastMessage().toastMessage(error.toString(), Colors.red);
+    });
+
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,108 +135,90 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                             ? constraints.maxHeight * 0.25
                                             : constraints.maxHeight * 0.8,
                                   ),
+
                                   SizedBox(
-                                    height: constraints.maxHeight * 0.03,
-                                  ),
-                                  const Text(
-                                    'Recent Savings',
-                                    style: TextStyle(
-                                      fontSize: 20,
+                                      height: 20,
+                                      width:
+                                          20), // Horizontal spacing between buttons
+                                  // Add Expenses Button
+                                  Container(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.075,
+                                    width:
+                                        MediaQuery.of(context).size.width * 1,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(25),
+                                      color: batuaaThemes.isDarkMode(context)
+                                          ? kDarkGreenBackC
+                                          : kGreenDarkC,
                                     ),
-                                  ),
-                                  SizedBox(
-                                    height: constraints.maxHeight * 0.03,
-                                  ),
-                                  map['savingInvestments'] == null
-                                      ? const Center(
-                                          child: Text('No savings yet'),
-                                        )
-                                      : StreamBuilder(
-                                          stream: ref
+                                    child: TextButton(
+                                      onPressed: () {
+                                        if (map['amount'] > 0) {
+                                          ref
                                               .child(user.uid)
                                               .child('split')
-                                              .child('savingInvestments')
-                                              .onValue,
-                                          builder: (context,
-                                              AsyncSnapshot<DatabaseEvent>
-                                                  snapshot) {
-                                            if (!snapshot.hasData) {
-                                              return const Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                color: kGreenColor,
-                                              ));
-                                            } else {
-                                              Map<dynamic, dynamic> map =
-                                                  snapshot.data!.snapshot.value
-                                                      as dynamic;
-                                              List<dynamic> list = [];
-                                              list.clear();
-                                              list = map.values.toList();
-                                              list.sort((a, b) => b[
-                                                      'paymentDateTime']
-                                                  .compareTo(
-                                                      a['paymentDateTime']));
+                                              .update({
+                                            'savings': map['savings'] +
+                                                map['amount'] -
+                                                map['expenses'],
+                                            'amount': 0,
+                                            'expenses': 0,
+                                          });
+                                        } else {
+                                          print(
+                                              "Error: Amount is already 0. Cannot update.");
+                                        }
+                                        // add();
+                                        // Map<dynamic, dynamic> map =
+                                        //     snapshot.data.snapshot.value;
 
-                                              dynamic formatDate(String date) {
-                                                final dynamic newDate =
-                                                    DateTime.parse(date);
-                                                final DateFormat formatter =
-                                                    DateFormat(
-                                                        'E, d MMMM,   hh:mm a');
-                                                final dynamic formatted =
-                                                    formatter.format(newDate);
-                                                return formatted;
-                                              }
+                                        // dynamic total =
+                                        //     map['amount'] as dynamic;
 
-                                              return Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: SizedBox(
-                                                      height: orientation ==
-                                                              Orientation
-                                                                  .portrait
-                                                          ? constraints
-                                                                  .maxHeight *
-                                                              0.4
-                                                          : constraints
-                                                                  .maxHeight *
-                                                              0.7,
-                                                      child: ListView.builder(
-                                                          itemCount: snapshot
-                                                              .data!
-                                                              .snapshot
-                                                              .children
-                                                              .length,
-                                                          itemBuilder:
-                                                              ((context,
-                                                                  index) {
-                                                            return TransactionCard(
-                                                                constraints:
-                                                                    constraints,
-                                                                dateAndTime:
-                                                                    formatDate(list[
-                                                                            index]
-                                                                        [
-                                                                        'paymentDateTime']),
-                                                                transactionAmount:
-                                                                    '- ${list[index]['amount']}',
-                                                                transactionName:
-                                                                    list[index][
-                                                                        'companyName'],
-                                                                width: constraints
-                                                                        .maxWidth *
-                                                                    0.05);
-                                                          })),
-                                                    ),
+                                        // print('total');
+                                      },
+                                      child: Column(
+                                        // Wrap everything in a Column
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(width: 5),
+                                              Flexible(
+                                                child: Text(
+                                                  'Transfer Savings',
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
                                                   ),
-                                                ],
-                                              );
-                                            }
-                                          },
-                                        ),
-                                  SizedBox(
-                                    height: constraints.maxHeight * 0.04,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines:
+                                                      1, // Limit to one line to prevent overflow
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Text(
+                                                // Const Text for "This feature is disabled"
+                                                'This feature is disabled',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),

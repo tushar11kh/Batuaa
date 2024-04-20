@@ -503,8 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                 transactionData[
                                                                     'value'],
                                                           });
-                                                        }
-                                                        else {
+                                                        } else {
                                                           ref
                                                               .child(user.uid)
                                                               .child('split')
@@ -514,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                 transactionData[
                                                                     'value'],
                                                           });
-                                                        }  // Recalculate updated total amount
+                                                        } // Recalculate updated total amount
 
                                                         // You can use the transactionId to delete the transaction from Firebase
                                                         print(transactionId);
