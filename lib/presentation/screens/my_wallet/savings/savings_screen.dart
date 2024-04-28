@@ -121,6 +121,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
                       return OrientationBuilder(
                         builder:
                             (BuildContext context, Orientation orientation) {
+                          var sizedBox = SizedBox(
+                            height: constraints.maxHeight * 0.02,
+                          );
                           return SingleChildScrollView(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -166,6 +169,9 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                             'expenses': 0,
                                           });
                                         } else {
+                                          ToastMessage().toastMessage(
+                                              'No amount available to transfer!',
+                                              Colors.red);
                                           print(
                                               "Error: Amount is already 0. Cannot update.");
                                         }
@@ -190,8 +196,8 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                                 child: Text(
                                                   'Transfer Savings',
                                                   style: TextStyle(
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 25,
+                                                    fontWeight: FontWeight.w600,
                                                     color: Colors.white,
                                                   ),
                                                   overflow:
@@ -202,24 +208,32 @@ class _SavingsScreenState extends State<SavingsScreen> {
                                               ),
                                             ],
                                           ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const Text(
-                                                // Const Text for "This feature is disabled"
-                                                'This feature is disabled',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          // Row(
+                                          //   mainAxisAlignment:
+                                          //       MainAxisAlignment.center,
+                                          //   children: [
+                                          //     const Text(
+                                          //       // Const Text for "This feature is disabled"
+                                          //       'This feature is disabled',
+                                          //       style: TextStyle(
+                                          //         fontSize: 12,
+                                          //         color: Colors.grey,
+                                          //       ),
+                                          //     ),
+                                          //   ],
+                                          // ),
                                         ],
                                       ),
                                     ),
                                   ),
+                                  // sizedBox,
+                                  // const Text(
+                                  //   'All Transactions',
+                                  //   style: TextStyle(fontSize: 20),
+                                  // ),
+                                  // SizedBox(
+                                  //   height: constraints.maxHeight * 0.015,
+                                  // ),
                                 ],
                               ),
                             ),
