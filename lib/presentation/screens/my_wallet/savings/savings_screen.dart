@@ -1,6 +1,4 @@
 import 'package:batuaa/colors.dart';
-import 'package:batuaa/presentation/screens/my_wallet/savings/automatic_investment_screen.dart';
-import 'package:batuaa/presentation/screens/my_wallet/savings/manual_investment_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';

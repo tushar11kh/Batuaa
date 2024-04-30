@@ -51,7 +51,7 @@ class _WalletScreenState extends State<WalletScreen>
                           indicatorColor: kGreenColor,
                           tabs: const [
                             Tab(text: 'Savings'),
-                            Tab(text: 'Expenses'),
+                            Tab(text: 'Suggestion'),
                           ],
                         ),
                       ),
