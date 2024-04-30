@@ -90,9 +90,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                           verWidth:
                                               constraints.maxHeight * 0.23,
                                           horiWidth: constraints.maxWidth * 0.4,
-                                          cardTitle: 'Income',
-                                          cardBalance:
-                                              map['amount'].toStringAsFixed(0),
+                                          cardTitle: 'Expenses',
+                                          cardBalance: map['expenses']
+                                              .toStringAsFixed(0),
                                         ),
                                         CustomCard(
                                           orientation: orientation,
