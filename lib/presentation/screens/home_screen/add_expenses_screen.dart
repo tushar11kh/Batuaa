@@ -217,14 +217,15 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                             style: TextStyle(fontSize: 18),
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              hintText: 'expenses',
-                              prefixIcon: Icon(Icons.currency_rupee),
-                            ),
+                          CustomTextField(
+                            hint: 'expenses',
+                            iconName: Icons.currency_rupee,
                             controller: expensesController,
-                            keyboardType: TextInputType.number,
                             validator: checkValid,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                           ),
                           SizedBox(height: constraints.maxHeight * 0.02),
                           const Text(

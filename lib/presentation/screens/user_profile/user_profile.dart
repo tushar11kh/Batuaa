@@ -1,7 +1,6 @@
 import 'package:batuaa/batuaa_themes.dart';
 import 'package:batuaa/colors.dart';
 import 'package:batuaa/presentation/screens/auth/forgot_password_screen.dart';
-import 'package:batuaa/presentation/screens/user_profile/update_account_screen.dart';
 import 'package:batuaa/presentation/screens/user_profile/update_profile_pic.dart';
 import 'package:batuaa/presentation/widgets/profile_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
