@@ -491,6 +491,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       key: Key(
                                                           transactionId), // Use transaction ID as the unique key
                                                       onDismissed: (direction) {
+                                                        if(total>=transactionData[
+                                                                    'value']){
                                                         if (transactionData[
                                                                 'type'] ==
                                                             'Income') {
@@ -514,17 +516,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     'value'],
                                                           });
                                                         } // Recalculate updated total amount
-
-                                                        // You can use the transactionId to delete the transaction from Firebase
-                                                        print(transactionId);
-                                                        print(transactionData[
-                                                            'type']);
-                                                        print(transactionData[
-                                                            'value']);
-                                                        print(map['amount']);
-                                                        print(map['expenses']);
-                                                        print(total);
-
                                                         ref
                                                             .child(user.uid)
                                                             .child('split')
@@ -533,7 +524,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             .child(
                                                                 transactionId)
                                                             .remove();
-                                                      },
+                                                      }else{
+                                                         ToastMessage().toastMessage('Not possible', Colors.red);
+                                                         setState(() {
+                                                           
+                                                         });
+                                                      }},
                                                       background: Container(
                                                         color: Colors.red,
                                                         child: Icon(
