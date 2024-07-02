@@ -1,29 +1,56 @@
-
 # Batuaa
+
 ![Logo](https://github.com/tushar11kh/Batuaa/blob/main/assets/app_icon.png?raw=true)
 
+## Overview
 
+**Batuaa** is a comprehensive personal finance management application designed to help users track their expenses, set budgets, and receive personalized financial advice. The app leverages the power of **Gemini AI** and **Firebase** to provide real-time data synchronization and actionable insights, ensuring users can manage their finances effectively across multiple devices.
 
+## Flow of Operations
 
-## The flow of operations :
-● Upon opening the app, users are prompted to authenticate themselves.
-● The User Authentication Module verifies the user's credentials against the Firebase database.
-● Once authenticated, users are directed to the Display Module, where they can view their financial data and access various features.
-● Users can perform financial transactions such as recording expenses, setting budgets, and exploring investment options through the Transaction Management Module.
-● The Integration with Gemini AI Module provides users with ways of better spending and suggestions to improve their financial health.
-● Data synchronization ensures that users' financial information is updated across multiple devices in real-time, facilitated by the Firebase database's real-time syncing capabilities.
+1. **User Authentication**
+   - Upon opening the app, users are prompted to authenticate themselves.
+   - The User Authentication Module verifies the user's credentials against the Firebase database.
 
+2. **Display Module**
+   - Once authenticated, users are directed to the Display Module.
+   - Here, they can view their financial data and access various features.
+
+3. **Transaction Management**
+   - Users can record income and expenses, set budgets, and explore investment options through the Transaction Management Module.
+
+4. **Integration with Gemini AI**
+   - Provides users with better spending suggestions and ways to improve their financial health.
+
+5. **Data Synchronization**
+   - Ensures that users' financial information is updated across multiple devices in real-time, facilitated by Firebase's real-time syncing capabilities.
 
 ## Product Functions
-● Users should be able to record income and expenses easily, categorize transactions into different expense categories (such as groceries, utilities, entertainment, etc.), and add notes for reference. The app should support adding, editing, and deleting transactions.
-● Users should be able to set personalized budgets for different expense categories and track their spending to ensure they stay within budget limits. The app should provide alerts or notifications when users exceed predefined budget thresholds.
-● The app should integrate with the Gemini AI API to provide personalized suggestions and recommendations for optimizing spending habits and exploring investment opportunities. Users should receive actionable insights based on their financial behavior and goals.
-● The app should be available on both Android and iOS platforms, ensuring accessibility for a wide range of users. It should maintain consistent functionality and user experience across different devices and operating systems.
-● The app should seamlessly sync data across multiple devices, enabling users to access their financial information anytime, anywhere. Changes made on one device should reflect immediately on all synced devices to ensure data consistency.
 
+- **Transaction Recording**
+  - Users can record income and expenses easily.
+  - Categorize transactions into different expense categories (e.g., groceries, utilities, entertainment).
+  - Add notes for reference.
+  - Support for adding, editing, and deleting transactions.
+
+- **Budget Management**
+  - Users can set personalized budgets for different expense categories.
+  - Track spending to ensure they stay within budget limits.
+  - Provide alerts or notifications when users exceed predefined budget thresholds.
+
+- **Gemini AI Integration**
+  - Integrate with the Gemini AI API to provide personalized suggestions and recommendations.
+  - Offer actionable insights based on financial behavior and goals.
+
+- **Cross-Platform Availability**
+  - The app is available on both Android and iOS platforms.
+  - Maintain consistent functionality and user experience across different devices and operating systems.
+
+- **Real-Time Data Sync**
+  - Seamlessly sync data across multiple devices.
+  - Ensure changes made on one device reflect immediately on all synced devices.
 
 ## Tech Stack
 
-**Client:** Flutter
-
-**Server:** Firebase
+- **Client:** Flutter
+- **Server:** Firebase
