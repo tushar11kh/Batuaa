@@ -6,9 +6,9 @@
 
 
 ## The flow of operations :
-● Upon opening the app, users are prompted to authenticate themselves.
-● The User Authentication Module verifies the user's credentials against the Firebase database.
-● Once authenticated, users are directed to the Display Module, where they can view their
+-Upon opening the app, users are prompted to authenticate themselves.
+-The User Authentication Module verifies the user's credentials against the Firebase database.
+-Once authenticated, users are directed to the Display Module, where they can view their
 financial data and access various features.
 ● Users can perform financial transactions such as recording expenses, setting budgets, and
 exploring investment options through the Transaction Management Module.
